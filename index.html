@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>دعوة زفاف فاخرة | Ahmed & Yasmina</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-burgundy: #541116;      
+            --text-burgundy: #541116;    
+            --lace-cream: #f4edd9;       
+            --card-ivory: #faf6eb;       
+            --border-lace: rgba(84, 17, 22, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            color: var(--text-burgundy);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: var(--bg-burgundy);
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        /* --- شاشة مدخل محاكاة الظرف ثلاثي الأبعاد (3D Envelope Stage) --- */
+        #envelope-container-stage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            /* تعيين خلفية الصورة هنا أيضاً لتوحيد الرؤية أثناء حركة الزووم */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('background.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+            overflow: hidden;
+            transition: opacity 0.8s ease, transform 1s ease-in-out;
+        }
+
+        /* مجسم الظرف */
+        .envelope-wrapper {
+            position: relative;
+            width: 340px;
+            height: 240px;
+            background-color: var(--bg-burgundy);
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            transform-style: preserve-3d;
+            transition: transform 1.2s ease-in-out;
+        }
+
+        /* جدران الظرف الأمامية والجانبية */
+        .envelope-front-wings {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            z-index: 10;
+            pointer-events: none;
+            background: linear-gradient(30deg, #440d11 48%, transparent 50%),
+                        linear-gradient(-30deg, #440d11 48%, transparent 50%),
+                        linear-gradient(to top, #4d1014, #3a0b0e);
+        }
+
+        /* غطاء الظرف العلوي القابل للفتح */
+        .envelope-flap {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: #66181d;
+            clip-path: polygon(0 0, 50% 50%, 100% 0);
+            transform-origin: top center;
+            z-index: 11;
+            transition: transform 0.8s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* الختم الشمعي التفاعلي */
+        .wax-seal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 55px;
+            height: 55px;
+            background: radial-gradient(circle, #dfcb9e 40%, #c2a76d 100%);
+            border-radius: 50%;
+            z-index: 12;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            font-family: 'Amiri', serif;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--text-burgundy);
+            border: 2px dashed var(--text-burgundy);
+            transition: all 0.4s ease;
+        }
+
+        .wax-seal:hover {
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow: 0 0 15px rgba(223, 203, 158, 0.6);
+        }
+
+        /* كارت المفاجأة المدمج بالداخل المتأهب للخروج ثلاثي الأبعاد */
+        .embedded-preview-card {
+            position: absolute;
+            bottom: 5px;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            background-color: var(--card-ivory);
+            border-radius: 8px;
+            z-index: 5;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            transform: translateZ(-10px);
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed var(--text-burgundy);
+        }
+
+        .embedded-preview-card h2 {
+            font-family: 'Alex Brush', cursive;
+            font-size: 2.3rem;
+            color: var(--text-burgundy);
+            margin-bottom: 2px;
+        }
+
+        /* --- محركات تأثيرات الفتح والـ Zoom الكاميرا السينمائي --- */
+        .stage-open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 4; 
+        }
+
+        .stage-open .wax-seal {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .stage-pop-card .embedded-preview-card {
+            transform: translateY(-130px) translateZ(80px) rotateX(-5deg);
+            z-index: 15;
+        }
+
+        .stage-camera-zoom .envelope-wrapper {
+            transform: scale(3.5) translateZ(200px) translateY(30px);
+            opacity: 0;
+        }
+        .stage-camera-zoom #envelope-container-stage {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- قوالب الدانتيل البيضاوية للموقع الفعلي --- */
+        #page-details {
+            display: none;
+            padding: 40px 15px;
+            min-height: 100vh;
+        }
+
+        .lace-oval-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .lace-oval-card {
+            background-color: var(--card-ivory);
+            padding: 55px 30px;
+            margin-bottom: 35px;
+            border-radius: 50% / 20% 20% 30% 30%; 
+            border: 2px dashed var(--bg-burgundy);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.25), inset 0 0 25px var(--lace-cream);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lace-oval-card::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px dotted var(--text-burgundy);
+            border-radius: 50% / 20% 20% 30% 30%;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .basmala {
+            font-family: 'Amiri', serif;
+            font-size: 1.6rem;
+            color: var(--text-burgundy);
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .names-typography {
+            font-family: 'Alex Brush', cursive;
+            font-size: 3.8rem;
+            color: var(--text-burgundy);
+            direction: ltr;
+            margin-bottom: 15px;
+        }
+
+        .section-lace-title {
+            font-family: 'Amiri', serif;
+            font-size: 1.45rem;
+            color: var(--text-burgundy);
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .lace-info-block {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed rgba(84, 17, 22, 0.2);
+        }
+
+        .lace-info-block h4 {
+            font-size: 1rem;
+            color: var(--text-burgundy);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .lace-info-block p {
+            font-size: 0.95rem;
+            color: rgba(84, 17, 22, 0.85);
+            line-height: 1.5;
+        }
+
+        .lace-countdown-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            direction: ltr;
+        }
+
+        .lace-timer-node {
+            background: var(--lace-cream);
+            border: 1px solid var(--border-lace);
+            border-radius: 50%;
+            padding: 16px 2px;
+        }
+
+        .lace-timer-node .val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-burgundy);
+            display: block;
+        }
+
+        .lace-timer-node .lbl {
+            font-size: 0.75rem;
+            color: var(--text-burgundy);
+            opacity: 0.8;
+        }
+
+        .btn-burgundy-lace {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-burgundy);
+            color: var(--card-ivory);
+            padding: 13px 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 20px 0;
+            width: 100%;
+            border: none;
+        }
+
+        .map-oval-frame {
+            width: 100%;
+            height: 180px;
+            border-radius: 25px;
+            overflow: hidden;
+            border: 1px solid var(--bg-burgundy);
+        }
+
+        .map-oval-frame iframe {
+            width: 100%;
+            height: 100%;
+        }
+
+        .quran-typography {
+            font-family: 'Amiri', serif;
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: var(--text-burgundy);
+            margin: 15px 0;
+        }
+
+        .interactive-stamp-box {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .butterfly-stamp-btn {
+            background: var(--lace-cream);
+            border: 1px solid var(--bg-burgundy);
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. شاشة مدخل محاكاة الظرف ثلاثي الأبعاد والـ Zoom السينمائي -->
+    <div id="envelope-container-stage">
+        <div class="envelope-wrapper" id="mainEnv">
+            <div class="envelope-flap"></div>
+            <div class="wax-seal" onclick="startEnvelopeSequence()">A & Y</div>
+            <div class="envelope-front-wings"></div>
+            
+            <div class="embedded-preview-card">
+                <p style="font-family:'Amiri'; font-size:0.75rem; margin-bottom:5px;">بسم الله الرحمن الرحيم</p>
+                <h2>Ahmed & Yasmina</h2>
+                <p style="font-size:0.75rem; margin-top:5px; border-top:1px solid rgba(84,17,22,0.2); padding-top:4px;">انقر لرؤية الدعوة الملكية 📜</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. الهيكل الدائري الدانتيل العاجي الفاخر للتفاصيل -->
+    <div id="page-details">
+        <div class="lace-oval-container">
+            
+            <div class="lace-oval-card">
+                <div class="basmala">بسم الله الرحمن الرحيم</div>
+                <h1 class="names-typography">Ahmed & Yasmina</h1>
+                <p class="lace-info-block" style="border:none; padding:0; font-weight:600;">يسعدنا ويشرفنا دعوتكم لحضور حفل زفافنا الليلة</p>
+            </div>
+
+            <div class="lace-oval-card">
+                <h3 class="section-lace-title">المتبقي على مشاركتنا الفرحة الكبرى</h3>
+                <div class="lace-countdown-container">
+                    <div class="lace-timer-node"><span class="val" id="seconds">00</span><span class="lbl">ثانية</span></div>
+                    <div class="lace-timer-node"><span class="val" id="minutes">00</span><span class="lbl">دقيقة</span></div>
+                    <div class="lace-timer-node"><span class="val" id="hours">00</span><span class="lbl">ساعة</span></div>
+                    <div class="lace-timer-node"><span class="val" id="days">00</span><span class="lbl">يوم</span></div>
+                </div>
+            </div>
+
+            <div class="lace-oval-card">
+                <h2 class="section-lace-title">تفاصيل وموقع الحفل</h2>
+                <div class="lace-info-block">
+                    <h4>التاريخ والموعد الرسمي</h4>
+                    <p>السبت، 11 نوفمبر 2026 م</p>
+                </div>
+                <div class="lace-info-block">
+                    <h4>توقيت استقبال الضيوف</h4>
+                    <p>تبدأ مراسم الترحيب في تمام الساعة 7:00 مساءً.</p>
+                </div>
+                <div class="lace-info-block">
+                    <h4>مكان الصالة الفاخرة</h4>
+                    <p>قاعة <strong>Liceria Grand Ballroom</strong></p>
+                </div>
+
+                <a href="https://maps.google.com" target="_blank" class="btn-burgundy-lace">عرض موقع القاعة على الخريطة 🗺</a>
+
+                <div class="map-oval-frame">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3453.156712345678!2d31.2200000!3d30.0600000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145840e61234567f%3A0x123456789abcdef!2sZamalek%2C%20Cairo!5e0!3m2!1sar!2seg!4v1700000000000!5m2!1sar!2seg" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+
+            <div class="lace-oval-card" style="padding-bottom: 40px;">
+                <p class="quran-typography">« وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً »</p>
+                <div class="interactive-stamp-box">
+                    <button class="butterfly-stamp-btn" id="stampBtn"><span>🦋</span></button>
+                    <p style="font-size:0.8rem; font-weight:600; margin-top:5px;">اضغط لإطلاق الفراشات السحرية بالصفحة</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function startEnvelopeSequence() {
+            const stage = document.getElementById('envelope-container-stage');
+            stage.classList.add('stage-open');
+            
+            setTimeout(() => {
+                stage.classList.add('stage-pop-card');
+            }, 900);
+            
+            setTimeout(() => {
+                stage.classList.add('stage-camera-zoom');
+            }, 2100);
+
+            setTimeout(() => {
+                stage.style.display = 'none';
+                document.getElementById('page-details').style.display = 'block';
+                setInterval(spawnMiniButterfly, 2400);
+            }, 3200);
+        }
+
+        function spawnMiniButterfly() {
+            const container = document.getElementById('page-details');
+            if (!container || container.style.display === 'none') return;
+
+            const miniBf = document.createElement('div');
+            miniBf.style.position = 'fixed';
+            miniBf.style.fontSize = Math.random() * 8 + 14 + 'px';
+            miniBf.style.left = Math.random() * 100 + 'vw';
+            miniBf.style.bottom = '-20px';
+            miniBf.style.pointerEvents = 'none';
+            miniBf.style.zIndex = '9998';
+            miniBf.innerText = '🦋';
+            
+            const duration = Math.random() * 2 + 3.5 + 's';
+            miniBf.style.transition = `transform ${duration} linear, opacity ${duration} ease`;
+            container.appendChild(miniBf);
+
+            setTimeout(() => {
+                miniBf.style.transform = `translate(${Math.random() * 100 - 50}px, -105vh) rotate(${Math.random() * 60 - 30}deg)`;
+                miniBf.style.opacity = '0';
+            }, 50);
+
+            setTimeout(() => { miniBf.remove(); }, parseFloat(duration) * 1000);
+        }
+
+        const weddingTimestamp = new Date('November 11, 2026 19:00:00').getTime();
+        
+        function updateClock() {
+            const now = new Date().getTime();
+            const difference = weddingTimestamp - now;
+
+            if (difference < 0) {
+                document.querySelector('.lace-countdown-container').innerHTML = "<p style='grid-column: span 4; font-size:1.05rem; font-weight:600;'>بدأ الحفل السعيد الليلة بقاعة الزفاف!</p>";
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = days < 10 ? '0' + days : days;
+            document.getElementById('hours').innerText = hours < 10 ? '0' + hours : hours;
+            document.getElementById('minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        document.getElementById('stampBtn').addEventListener('click', () => {
+            let count = 0;
+            const burst = setInterval(() => {
+                spawnMiniButterfly();
+                count++;
+                if (count >= 20) clearInterval(burst);
+            }, 70);
+        });
+    </script>
+</body>
+</html>
